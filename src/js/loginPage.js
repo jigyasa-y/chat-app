@@ -1,5 +1,5 @@
 const loginButton=document.querySelector("#loginButton");
-const url="https://chat-app-s-server.onrender.com"
+const url="https://chat-app-server-1-fsk4.onrender.com"
 
 
 loginButton.addEventListener("click",async(event)=>{
@@ -27,5 +27,6 @@ catch(error){
     showToast(error.response?.data?.message || error.message,"error");
 }
 });
+
 
 

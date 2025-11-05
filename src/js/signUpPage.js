@@ -1,5 +1,5 @@
 const submitButton=document.querySelector("#loginButton");
-const url="https://chat-app-s-server.onrender.com";
+const url="https://chat-app-server-1-fsk4.onrender.com";
 submitButton.addEventListener("click",async (event)=>{
 event.preventDefault();
 
@@ -78,4 +78,5 @@ catch(error){
 
 // }
 // });
+
 

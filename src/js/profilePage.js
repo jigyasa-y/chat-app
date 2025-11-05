@@ -9,7 +9,7 @@
     const currentPic=document.querySelector("#currentPic");
 
 
-const url="https://chat-app-s-server.onrender.com"
+const url="https://chat-app-server-1-fsk4.onrender.com"
 
 window.onload=async()=>{
   const token=localStorage.getItem('token');
@@ -76,6 +76,7 @@ edit_menu.classList.add('hidden');
         console.error(error);
         alert("Error uploading image.");
       } 
+
 
 
 

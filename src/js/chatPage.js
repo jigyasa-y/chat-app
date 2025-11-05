@@ -18,7 +18,7 @@ const chatBox=document.querySelector(".chatBox");
 // const noti_icon=document.querySelector("#notiIcon");
 // const home=document.querySelector("#homeIcon");
 const navItems=document.querySelectorAll(".nav-item");
-const url=""
+const url="https://chat-app-server-1-fsk4.onrender.com"
 pages=document.querySelectorAll(".page");
 let currentPage;
 navItems.forEach(item=>{
@@ -370,5 +370,6 @@ const message="Added you"
 // catch(error){
 //   console.log(error.message);
 // }
+
 
 // }

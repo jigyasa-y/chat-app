@@ -10,6 +10,7 @@
 
 
 const url="https://chat-app-server-1-fsk4.onrender.com"
+// const url="http://localhost:3000";
 
 window.onload=async()=>{
   const token=localStorage.getItem('token');

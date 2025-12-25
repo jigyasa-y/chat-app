@@ -10,7 +10,8 @@ const logout=document.querySelector(".logout");
 const logoutPage=document.querySelector(".logoutPage");
 const logoutYes=document.querySelector("#logoutYes");
 const logoutNo=document.querySelector("#logoutNo");
-const noti_list=document.querySelector(".noti_list");
+const noti_list=document.querySelector("#notiList");
+const notiBadge=document.querySelector("#notiBadge");
 const userPage=document.querySelector(".userPage");
 const chatBox=document.querySelector(".chatBox");
 
@@ -18,7 +19,8 @@ const chatBox=document.querySelector(".chatBox");
 // const noti_icon=document.querySelector("#notiIcon");
 // const home=document.querySelector("#homeIcon");
 const navItems=document.querySelectorAll(".nav-item");
-const url="https://chat-app-server-1-fsk4.onrender.com"
+const url="https://chat-app-server-1-fsk4.onrender.com";
+// const url="http://localhost:3000"
 pages=document.querySelectorAll(".page");
 let currentPage;
 navItems.forEach(item=>{
@@ -31,8 +33,24 @@ item.addEventListener("click",()=>{
 if(item.dataset.page=="logout"){
   return ;
 }
-        document.getElementById(item.dataset.page).classList.remove('hidden');
-        document.querySelector(".userPage").classList.remove("hidden");
+
+// Update body background based on active page
+document.body.className = ''; // Clear all background classes
+const pageName = item.dataset.page;
+if(pageName === 'home') {
+  document.body.classList.add('home-active');
+} else if(pageName === 'chat') {
+  document.body.classList.add('chat-active');
+} else if(pageName === 'notification') {
+  document.body.classList.add('notification-active');
+} else if(pageName === 'setting') {
+  document.body.classList.add('setting-active');
+}
+
+document.getElementById(item.dataset.page).classList.remove('hidden');
+if(item.dataset.page === 'chat') {
+  document.querySelector(".userPage").classList.remove("hidden");
+}
 
 })
   
@@ -97,7 +115,11 @@ catch(error){
 
 
 loadusers();
+loadNotification();
 socket.emit("join",userId);
+
+// Set initial background for home page
+document.body.classList.add('home-active');
 }
 
 authorImage.addEventListener("click",()=>{
@@ -315,33 +337,106 @@ const loadChat=async(id)=>{
 // });
 
 
+// Format date helper function
+const formatNotificationDate = (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now - date;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) {
+    return 'Just now';
+  } else if (minutes < 60) {
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  } else if (hours < 24) {
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  } else if (days < 7) {
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  } else {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+};
+
 const loadNotification=async()=>{
-
   try{
-const res=await axios.post(`${url}/api/auth/loadNotification`,{userId})
-console.log(res.data);
-if(res.data.length==0){
-  return ;
-}
+    const res=await axios.post(`${url}/api/auth/loadNotification`,{userId});
+    const notifications = res.data;
+    
+    // Update badge count
+    if(notifications.length > 0) {
+      notiBadge.textContent = notifications.length > 99 ? '99+' : notifications.length;
+      notiBadge.classList.remove('hidden');
+    } else {
+      notiBadge.classList.add('hidden');
+    }
 
-res.data.forEach(noti=>{
-  noti_list.innerHTML=`  <div class="noti_card" onclick="deleteNotification('${noti._id}')">
-    <img src="../../public/avatar.jpeg" alt="" id="noti_user">
-    <div class="noti_details">
-      
-      <span id="noti_user">${noti.userName}</span>
-      <span id="noti_message">: Added you</span>
-    </div>
-    <span id="noti_date">7:05am</span>
-</div>`
-})
+    // Clear existing notifications
+    noti_list.innerHTML = '';
 
+    if(notifications.length === 0) {
+      noti_list.innerHTML = `
+        <div class="noti_empty">
+          <i class="fa-solid fa-bell-slash"></i>
+          <span>No notifications yet</span>
+        </div>
+      `;
+      return;
+    }
 
+    // Render notifications
+    notifications.forEach(noti => {
+      const notiCard = document.createElement('div');
+      notiCard.className = 'noti_card';
+      notiCard.innerHTML = `
+        <img src="${noti.profilePic || '../../public/avatar.jpeg'}" alt="${noti.userName}">
+        <div class="noti_details">
+          <span class="noti_user_name">${noti.userName}</span>
+          <span class="noti_message_text">${noti.message}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+          <span class="noti_date">${formatNotificationDate(noti.createdAt)}</span>
+          <button class="noti_delete" onclick="deleteNotification('${noti._id}')" title="Delete">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `;
+      noti_list.appendChild(notiCard);
+    });
   }
   catch(error){
-    console.log(error.message);
+    console.log("Error loading notifications:", error.message);
   }
-  
+}
+
+const deleteNotification=async(id)=>{
+  try{
+    const res=await axios.post(`${url}/api/auth/deleteNotification`,{id});
+    console.log(res.data.message);
+    loadNotification(); // Reload notifications after deletion
+  }
+  catch(error){
+    console.log("Error deleting notification:", error.message);
+  }
+}
+
+const clearAllNotifications=async()=>{
+  try{
+    const res=await axios.post(`${url}/api/auth/loadNotification`,{userId});
+    const notifications = res.data;
+    
+    // Delete all notifications
+    for(const noti of notifications) {
+      await axios.post(`${url}/api/auth/deleteNotification`,{id: noti._id});
+    }
+    
+    loadNotification(); // Reload to show empty state
+  }
+  catch(error){
+    console.log("Error clearing notifications:", error.message);
+  }
 }
 
 const sendNotification=async(recieverId)=>{
@@ -359,17 +454,119 @@ const message="Added you"
 
 }
 
-// const deleteNotification=async(id)=>{
+// Settings Functions
+const toggleDarkMode=()=>{
+  const isDark = document.getElementById('darkModeToggle').checked;
+  localStorage.setItem('darkMode', isDark);
+  // Apply dark mode styles if needed
+  if(isDark) {
+    document.body.style.filter = 'brightness(0.8)';
+  } else {
+    document.body.style.filter = 'brightness(1)';
+  }
+}
 
-// try{
+const changeThemeColor=()=>{
+  const color = document.getElementById('themeColor').value;
+  localStorage.setItem('themeColor', color);
+  // Apply theme color changes
+  console.log('Theme color changed to:', color);
+}
 
-//   const res=await axios.post("http://localhost:3000/api/auth/deleteNotification",{id});
-//   console.log(res.data.message);
-//   loadNotification();
-// }
-// catch(error){
-//   console.log(error.message);
-// }
+const togglePushNotifications=()=>{
+  const enabled = document.getElementById('pushNotifications').checked;
+  localStorage.setItem('pushNotifications', enabled);
+  console.log('Push notifications:', enabled ? 'enabled' : 'disabled');
+}
 
+const toggleSoundAlerts=()=>{
+  const enabled = document.getElementById('soundAlerts').checked;
+  localStorage.setItem('soundAlerts', enabled);
+  console.log('Sound alerts:', enabled ? 'enabled' : 'disabled');
+}
 
-// }
+const toggleEmailNotifications=()=>{
+  const enabled = document.getElementById('emailNotifications').checked;
+  localStorage.setItem('emailNotifications', enabled);
+  console.log('Email notifications:', enabled ? 'enabled' : 'disabled');
+}
+
+const toggleOnlineStatus=()=>{
+  const enabled = document.getElementById('onlineStatus').checked;
+  localStorage.setItem('onlineStatus', enabled);
+  console.log('Online status:', enabled ? 'visible' : 'hidden');
+}
+
+const toggleReadReceipts=()=>{
+  const enabled = document.getElementById('readReceipts').checked;
+  localStorage.setItem('readReceipts', enabled);
+  console.log('Read receipts:', enabled ? 'enabled' : 'disabled');
+}
+
+const changeProfileVisibility=()=>{
+  const visibility = document.getElementById('profileVisibility').value;
+  localStorage.setItem('profileVisibility', visibility);
+  console.log('Profile visibility:', visibility);
+}
+
+const changePassword=()=>{
+  const newPassword = prompt('Enter new password:');
+  if(newPassword) {
+    // Implement password change logic
+    console.log('Password change requested');
+    alert('Password change feature coming soon!');
+  }
+}
+
+const deleteAccount=()=>{
+  if(confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+    // Implement account deletion logic
+    console.log('Account deletion requested');
+    alert('Account deletion feature coming soon!');
+  }
+}
+
+// Load saved settings on page load
+window.addEventListener('DOMContentLoaded', () => {
+  // Load notification settings
+  const pushNoti = localStorage.getItem('pushNotifications');
+  if(pushNoti !== null) {
+    document.getElementById('pushNotifications').checked = pushNoti === 'true';
+  }
+  
+  const soundAlerts = localStorage.getItem('soundAlerts');
+  if(soundAlerts !== null) {
+    document.getElementById('soundAlerts').checked = soundAlerts === 'true';
+  }
+  
+  const emailNoti = localStorage.getItem('emailNotifications');
+  if(emailNoti !== null) {
+    document.getElementById('emailNotifications').checked = emailNoti === 'true';
+  }
+  
+  const onlineStatus = localStorage.getItem('onlineStatus');
+  if(onlineStatus !== null) {
+    document.getElementById('onlineStatus').checked = onlineStatus === 'true';
+  }
+  
+  const readReceipts = localStorage.getItem('readReceipts');
+  if(readReceipts !== null) {
+    document.getElementById('readReceipts').checked = readReceipts === 'true';
+  }
+  
+  const profileVisibility = localStorage.getItem('profileVisibility');
+  if(profileVisibility) {
+    document.getElementById('profileVisibility').value = profileVisibility;
+  }
+  
+  const themeColor = localStorage.getItem('themeColor');
+  if(themeColor) {
+    document.getElementById('themeColor').value = themeColor;
+  }
+  
+  const darkMode = localStorage.getItem('darkMode');
+  if(darkMode !== null) {
+    document.getElementById('darkModeToggle').checked = darkMode === 'true';
+    toggleDarkMode();
+  }
+});

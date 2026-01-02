@@ -236,28 +236,30 @@
       justify-content: flex-start;
       align-self: flex-start;
       padding: 1rem 1.5rem;
-      margin-left: 1rem;
-      margin-top: 1rem;
-      background-color: rgba(255, 255, 255, 0.04);
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-left: 0.5rem;
+      margin-top: -2.5rem;
+      /* background-color: rgba(255, 255, 255, 0.04); */
+      /* backdrop-filter: blur(15px); */
+      /* border: 1px solid rgba(255, 255, 255, 0.08); */
       border-radius: 14px;
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+      /* box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25); */
       transition: all 0.3s;
       gap: 0.75rem;
+      background: none;
     }
 
     .logo:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 22px rgba(79, 172, 254, 0.35);
-      border-color: rgba(79, 172, 254, 0.25);
+      /* box-shadow: 0 10px 22px rgba(79, 172, 254, 0.35); */
+      /* border-color: rgba(79, 172, 254, 0.25); */
     }
 
     #logoImage {
       height: 4.25rem;
+      scale: 2.5;
       width: auto;
       object-fit: contain;
-      filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.25));
+      /* filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.25)); */
     }
 
     .introDiv {
@@ -437,6 +439,7 @@
       flex-direction: column;
       flex: 1;
       overflow: hidden;
+
     }
 
     #friendHeading {
@@ -1028,7 +1031,7 @@
       .userPage {
         width: 100%;
         height: 40%;
-        min-height: 200px;
+        /* min-height: 200px; */
       }
 
       .chatBox {
@@ -1079,7 +1082,7 @@
       }
 
       .userPage {
-        height: 35%;
+        height: 100%;
       }
 
       .chatBox {
@@ -1123,6 +1126,256 @@
         width: 100%;
       }
     }
+
+    /* CALL OVERLAY */
+.call-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.call-overlay.hide {
+  display: none;
+}
+
+.call-card {
+  background: #111;
+  color: white;
+  width: 300px;
+  padding: 25px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+.call-user-pic {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+  border: 3px solid #25d366;
+}
+
+.call-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.call-btn {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.call-btn.end {
+  background: red;
+  color: white;
+}
+
+.call-btn.mute {
+  background: #333;
+  color: white;
+}
+.video-call-card {
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  height: 90%;
+  background: black;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.local-video {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  width: 120px;
+  height: 160px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid white;
+}
+/* ===== VIDEO CALL OVERLAY ===== */
+.video-call-overlay {
+  position: fixed;
+  inset: 0;
+  background: black;
+  z-index: 9999;
+}
+
+.video-call-overlay.hidden {
+  display: none;
+}
+
+/* Remote video full screen */
+.remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Local video (picture-in-picture) */
+.local-video {
+  position: absolute;
+  bottom: 90px;
+  right: 20px;
+  width: 120px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid white;
+  background: black;
+}
+
+/* Controls container */
+.video-controls {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+}
+
+/* Buttons */
+.vc-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  background: #333;
+  color: white;
+}
+
+.vc-btn.end {
+  background: #e53935;
+}
+
+/* ===== VIDEO CALL UI ===== */
+.vc-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.vc-overlay.hidden {
+  display: none;
+}
+
+.vc-container {
+  width: 320px;
+  height: 480px;
+  background: #111;
+  border-radius: 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.vc-header {
+  text-align: center;
+}
+
+.vc-video-area {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.vc-video-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #222;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+}
+
+.vc-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.vc-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  background: #333;
+  color: white;
+}
+
+.vc-btn.end {
+  background: #e53935;
+}
+
+.vc-btn.answer {
+  background: #4caf50;
+}
+.vc-video-area {
+  position: relative;
+  flex: 1;
+  background: black;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Remote video full screen */
+.vc-remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Local video (picture-in-picture) */
+.vc-local-video {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 100px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid white;
+  background: black;
+}
+
+
   </style>
 </head>
 <body>
@@ -1308,6 +1561,57 @@
       </div>
     </div>
   </div>
+
+
+
+<!-- VIDEO CALL OVERLAY -->
+<!-- VIDEO CALL OVERLAY -->
+<div id="videoCallUI" class="vc-overlay hidden">
+
+  <div class="vc-container">
+
+    <!-- Call Status -->
+    <div class="vc-header">
+      <h2 id="vcTitle">Calling...</h2>
+      <p id="vcSubtitle">Video Call</p>
+    </div>
+
+    <!-- Video Area (placeholder for now) -->
+  <div class="vc-video-area">
+  <!-- Remote video (full area) -->
+  <video
+    id="remoteVideo"
+    autoplay
+    playsinline
+    class="vc-remote-video"
+  ></video>
+
+  <!-- Local video (small overlay) -->
+  <video
+    id="localVideo"
+    autoplay
+    muted
+    playsinline
+    class="vc-local-video"
+  ></video>
+</div>
+
+
+    <!-- CONTROLS -->
+    <div class="vc-controls">
+
+      <!-- Receiver buttons -->
+      <button id="answerBtn" class="vc-btn answer hidden">✅</button>
+      <button id="rejectBtn" class="vc-btn end hidden">❌</button>
+
+      <!-- In-call buttons -->
+      <button id="cameraBtn" class="vc-btn">🎥</button>
+      <button id="endBtn" class="vc-btn end">📞</button>
+
+    </div>
+
+  </div>
+</div>
 
   <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>

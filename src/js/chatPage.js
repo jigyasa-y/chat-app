@@ -14,6 +14,35 @@ const noti_list=document.querySelector("#notiList");
 const notiBadge=document.querySelector("#notiBadge");
 const userPage=document.querySelector(".userPage");
 const chatBox=document.querySelector(".chatBox");
+const videoCallUI = document.getElementById("videoCallUI");
+const vcTitle = document.getElementById("vcTitle");
+
+const localVideo = document.getElementById("localVideo");
+const remoteVideo = document.getElementById("remoteVideo");
+
+const answerBtn = document.getElementById("answerBtn");
+const rejectBtn = document.getElementById("rejectBtn");
+const endBtn = document.getElementById("endBtn");
+const cameraBtn = document.getElementById("cameraBtn");
+
+    // socket connected
+let loggedInUserId;           // current user id
+let selectedUserId;    
+let currentUser;
+let userProfilePic;       // user you are chatting with
+let activeCallType = null; // "audio" | "video" | null
+const rtcConfig = {
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+};
+
+let videoPeer = null;
+let videoStream = null;
+let currentCallUserId = null;
+let cameraEnabled = true;
+
+
+
+
 
 
 // const noti_icon=document.querySelector("#notiIcon");
@@ -69,7 +98,12 @@ const date=new Date();
 const i=document.querySelectorAll("i");
 
 
-const socket=io(url);
+const socket=io(url, {
+  transports: ["websocket"],
+
+
+
+});
 
 let userId;
 
@@ -103,6 +137,12 @@ try{
 const res=await axios.post(`${url}/api/auth/checkAuth`,{token});
  userId= res.data._id;
  authorImage.src=res.data.profilePic;
+ currentUser=res.data.fullName;
+
+
+
+
+ userProfilePic=res.data.profilePic;
 
 
         
@@ -131,8 +171,12 @@ search.addEventListener("input",async()=>{
 
  const name=document.querySelector("#search").value;
 if(name==""){
+
+
   result.style.display="none";
-}
+
+
+} 
 else{
   result.style.display="inline";
 }
@@ -244,8 +288,18 @@ document.querySelector(".chatBox").innerHTML=`
   </div>
 
   <div class="options">
-    <span id="call"><i class="fa-solid fa-phone-volume"></i></span>
-    <span id="v-call"><i class="fa-solid fa-video"></i></span>
+    <span id="call" onclick="makeAudioCall(
+    '${id}',
+    '${name}',
+    '${pic}'
+  )"><i class="fa-solid fa-phone-volume"></i></span>
+    <span id="v-call"  
+    "v-call"
+  onclick="startVideoCall(
+    '${id}'
+  )"
+
+  ><i class="fa-solid fa-video"></i></span>
     <span id="more"><i class="fa-solid fa-bars"></i></span>
   </div>
 </div>
@@ -262,6 +316,14 @@ document.querySelector(".chatBox").innerHTML=`
   <button class="send" onclick="sendMessage('${id}')"><i class="fa-solid fa-paper-plane"></i></button>
 </div>
 `
+
+window.addEventListener("keydown",e=>{
+if(e.keyCode==13){
+
+  sendMessage(id);
+}
+
+})
 // socket.on("updateUserStatus", ({ userId, isOnline, lastSeen }) => {
 
 //   if (isOnline) {
@@ -569,4 +631,165 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('darkModeToggle').checked = darkMode === 'true';
     toggleDarkMode();
   }
+});
+
+
+async function startVideoCall(userId) {
+  currentCallUserId = userId;
+
+  vcTitle.innerText = "Calling...";
+  videoCallUI.classList.remove("hidden");
+
+  videoStream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+  });
+
+  localVideo.srcObject = videoStream;
+
+  videoPeer = new RTCPeerConnection(rtcConfig);
+
+  videoStream.getTracks().forEach(track => {
+    videoPeer.addTrack(track, videoStream);
+  });
+
+  videoPeer.ontrack = (e) => {
+    remoteVideo.srcObject = e.streams[0];
+  };
+
+  videoPeer.onicecandidate = (e) => {
+    if (e.candidate) {
+      socket.emit("ice-candidate", {
+        to: currentCallUserId,
+        candidate: e.candidate
+      });
+    }
+  };
+
+  const offer = await videoPeer.createOffer();
+  await videoPeer.setLocalDescription(offer);
+
+  socket.emit("call-user", {
+    to: currentCallUserId,
+    offer,
+    type: "video"
+  });
+}
+let offerCache = null;
+
+
+socket.on("incoming-call", async ({ from, offer, type }) => {
+  if (type !== "video") return;
+
+  currentCallUserId = from;
+  offerCache = offer;
+
+
+  vcTitle.innerText = "Incoming Call";
+  videoCallUI.classList.remove("hidden");
+
+  answerBtn.classList.remove("hidden");
+  rejectBtn.classList.remove("hidden");
+});
+
+answerBtn.onclick = async () => {
+  vcTitle.innerText = "In Call";
+
+  answerBtn.classList.add("hidden");
+  rejectBtn.classList.add("hidden");
+
+  videoStream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+  });
+    localVideo.srcObject = videoStream;
+  localVideo.muted = true; // important for mobile
+  localVideo.play();
+
+  localVideo.srcObject = videoStream;
+
+  videoPeer = new RTCPeerConnection(rtcConfig);
+
+  videoStream.getTracks().forEach(track => {
+    videoPeer.addTrack(track, videoStream);
+  });
+
+  videoPeer.ontrack = (e) => {
+
+    remoteVideo.srcObject = e.streams[0];
+  };
+
+  videoPeer.onicecandidate = (e) => {
+    if (e.candidate) {
+      socket.emit("ice-candidate", {
+        to: currentCallUserId,
+        candidate: e.candidate
+      });
+    }
+  };
+
+  await videoPeer.setRemoteDescription(offerCache); // see note below
+
+  const answer = await videoPeer.createAnswer();
+  await videoPeer.setLocalDescription(answer);
+
+  socket.emit("accept-call", {
+    to: currentCallUserId,
+    answer
+  });
+};
+
+socket.on("call-accepted", async ({ answer }) => {
+  if (videoPeer) {
+    await videoPeer.setRemoteDescription(answer);
+    vcTitle.innerText = "In Call";
+  }
+});
+socket.on("ice-candidate", async ({ candidate }) => {
+  if (videoPeer && candidate) {
+    await videoPeer.addIceCandidate(candidate);
+  }
+});
+
+
+cameraBtn.onclick = () => {
+  if (!videoStream) return;
+
+  const track = videoStream.getVideoTracks()[0];
+  if (!track) return;
+
+  cameraEnabled = !cameraEnabled;
+  track.enabled = cameraEnabled;
+
+  cameraBtn.innerText = cameraEnabled ? "🎥" : "🚫";
+};
+
+endBtn.onclick = endVideoCall;
+rejectBtn.onclick = endVideoCall;
+
+function endVideoCall() {
+  if (videoPeer) {
+    videoPeer.close();
+    videoPeer = null;
+  }
+
+  if (videoStream) {
+    videoStream.getTracks().forEach(t => t.stop());
+    videoStream = null;
+  }
+
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+
+  videoCallUI.classList.add("hidden");
+
+  socket.emit("end-call", { to: currentCallUserId });
+  currentCallUserId = null;
+}
+
+
+socket.on("call-ended", () => {
+  endVideoCall();
+
+
 });

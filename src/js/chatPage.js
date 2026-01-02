@@ -32,8 +32,19 @@ let currentUser;
 let userProfilePic;       // user you are chatting with
 let activeCallType = null; // "audio" | "video" | null
 const rtcConfig = {
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    {
+      urls: [
+        "turn:global.relay.metered.ca:80",
+        "turn:global.relay.metered.ca:443"
+      ],
+      username: "b78ae65feed0d617772df2d",
+      credential: "toMiYI0WXzR7hGjj"
+    }
+  ]
 };
+
 
 let videoPeer = null;
 let videoStream = null;

@@ -35,12 +35,9 @@ const rtcConfig = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     {
-      urls: [
-        "turn:global.relay.metered.ca:443?transport=tcp",
-        "turn:global.relay.metered.ca:80?transport=tcp"
-      ],
-      username: "b78ae65feed0d617772df2d",
-      credential: "toMiYI0WXzR7hGjj"
+      urls: "turn:openrelay.metered.ca:443?transport=tcp",
+      username: "openrelayproject",
+      credential: "openrelayproject"
     }
   ]
 };

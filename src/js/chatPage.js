@@ -31,30 +31,30 @@ let selectedUserId;
 let currentUser;
 let userProfilePic;       // user you are chatting with
 let activeCallType = null; // "audio" | "video" | null
-// const rtcConfig = {
-//   iceServers: [
-//     { urls: "stun:stun.l.google.com:19302" },
-//     {
-//       urls: [
-//         "turn:global.relay.metered.ca:80",
-//         "turn:global.relay.metered.ca:443"
-//       ],
-//       username: "b78ae65feed0d617772df2d",
-//       credential: "toMiYI0WXzR7hGjj"
-//     }
-//   ]
-// };
-
 const rtcConfig = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     {
-      urls: "turn:openrelay.metered.ca:80",
-      username: "openrelayproject",
-      credential: "openrelayproject"
+      urls: [
+        "turn:global.relay.metered.ca:443?transport=tcp",
+        "turn:global.relay.metered.ca:80?transport=tcp"
+      ],
+      username: "b78ae65feed0d617772df2d",
+      credential: "toMiYI0WXzR7hGjj"
     }
   ]
 };
+
+// const rtcConfig = {
+//   iceServers: [
+//     { urls: "stun:stun.l.google.com:19302" },
+//     {
+//       urls: "turn:openrelay.metered.ca:80",
+//       username: "openrelayproject",
+//       credential: "openrelayproject"
+//     }
+//   ]
+// };
 
 
 let videoPeer = null;
